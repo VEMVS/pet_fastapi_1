@@ -1,1 +1,6 @@
 /project_fast_api
+/__pycache__
+/app/__init__.py 
+/monkeytype.sqlite3
+/t.txt
+__pycache__/
