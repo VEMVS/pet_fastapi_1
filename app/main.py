@@ -1,17 +1,15 @@
 from fastapi import FastAPI, HTTPException, status, Response, Depends
 from typing import List
-from . import models, schemas
+from . import models, schemas, utils
 from .database import engine, get_db
 from sqlalchemy.orm import Session
+from passlib.context import CryptContext
 
-
-models.Base.metadata.create_all(bind=engine)
-
-
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 app = FastAPI()
 
 
-# ---- GET: вернуть список постов ----
+
 @app.get("/posts", response_model=List[schemas.PostResponse])
 def test_posts(db: Session = Depends(get_db)):
     return db.query(models.Post).all()
@@ -29,7 +27,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     return find_post
 
 
-# ---- POST: создать пост ----
+
 @app.post(
     "/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse
 )
@@ -63,7 +61,7 @@ def put_post(
     return updatet_post
 
 
-@app.delete("/posts/{post_id}")
+@app.delete("/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(post_id: int, db: Session = Depends(get_db)):
     post_delete = db.query(models.Post).filter(models.Post.id == post_id).first()
 
@@ -76,4 +74,28 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
     db.delete(post_delete)
     db.commit()
 
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+
+    hashed_password = utils.hash(user.password)
+    user.password = hashed_password
+
+    new_user = models.User(**user.model_dump())
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    
+    return new_user
+     
+
+@app.get("/users/{id}", response_model=schemas.UserOut)
+def get_user(id: int, db: Session = Depends(get_db)):
+
+    user = db.query(models.User).filter(models.User.id == id).first()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail=f"User with id: {id} does not exist")
+    
+    return user
