@@ -8,9 +8,7 @@ class PostBase(BaseModel):
     content: str = Field(..., min_length=1, description="Текст")
     published: bool = Field(True, description="Публичен ли пост")
 
-    model_config = {
-        "from_attributes": True  
-    }
+    model_config = {"from_attributes": True}
 
     @field_validator("title", "content", mode="before")
     def _strip_strings(cls, v):
@@ -46,11 +44,24 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
+
 class UserOut(BaseModel):
     id: int
     email: EmailStr
     created_at: datetime
 
-    model_config = {
-        "from_attributes": True  
-    }
+    model_config = {"from_attributes": True}
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    id: Optional[int] = None
