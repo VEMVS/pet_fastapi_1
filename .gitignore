@@ -4,3 +4,4 @@
 /monkeytype.sqlite3
 /t.txt
 __pycache__/
+/.env

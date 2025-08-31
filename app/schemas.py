@@ -1,13 +1,12 @@
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, Field, field_validator, EmailStr
+from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict, field_serializer
 
 
 class PostBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=200, description="Заголовок")
     content: str = Field(..., min_length=1, description="Текст")
-    published: bool = Field(True, description="Публичен ли пост")
-
+    published: bool = Field(False, description="Опубликован ли пост")
     model_config = {"from_attributes": True}
 
     @field_validator("title", "content", mode="before")
@@ -35,21 +34,23 @@ class PostUpdate(BaseModel):
         return v
 
 
-class PostResponse(PostBase):
-    id: int
-    created_at: datetime
-
-
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    nickname: str
 
 
 class UserOut(BaseModel):
     id: int
     email: EmailStr
+    nickname: str
     created_at: datetime
 
+    model_config = {"from_attributes": True}
+
+
+class UserOutForPost(BaseModel):
+    nickname: str
     model_config = {"from_attributes": True}
 
 
@@ -65,3 +66,15 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[int] = None
+
+
+class PostResponse(PostBase):
+    owner_id: int
+    id: int
+    created_at: datetime
+    owner: UserOutForPost
+    model_config = ConfigDict()
+
+    @field_serializer('created_at')
+    def format_created_at(self, v: datetime):
+        return v.strftime("%d.%m.%y, %H:%M")
