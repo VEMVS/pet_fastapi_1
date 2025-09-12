@@ -44,10 +44,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(new_user)
         return {
-    "id": new_user.id,
-    "email": new_user.email,
-    "nickname": new_user.nickname,
-    "created_at": new_user.created_at
+
 }
     except IntegrityError:
         db.rollback()

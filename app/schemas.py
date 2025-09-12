@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
 from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict, field_serializer
 
@@ -78,3 +78,14 @@ class PostResponse(PostBase):
     @field_serializer('created_at')
     def format_created_at(self, v: datetime):
         return v.strftime("%d.%m.%y, %H:%M")
+
+
+class Vote(BaseModel):
+    post_id: int
+    dir: Literal[0, 1]
+
+class PostOut(BaseModel):
+    Post: PostResponse
+    votes: int
+
+    model_config = {"from_attributes": True}
